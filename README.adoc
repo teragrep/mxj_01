@@ -1,0 +1,257 @@
+= Teragrep mxj_01
+
+Teragrep mxj_01 is based on https://github.com/tersesystems/jmxbuilder[the work] of github user https://github.com/wsargent[@wsargent], all tribute to them. This is a repackage for our Teragrep use.
+
+== Examples
+
+[source,java,title="TopicCounter.java - POJO for metric data"]
+----
+package com.teragrep.example.metrics;
+
+import java.util.concurrent.atomic.AtomicLong;
+
+public class TopicCounter {
+
+    private final String topicName;
+    private final AtomicLong totalRecords = new AtomicLong();
+    private final AtomicLong totalBytes = new AtomicLong();
+    private final AtomicLong recordsPerSecond = new AtomicLong();
+    private final AtomicLong bytesPerSecond = new AtomicLong();
+
+    public TopicCounter(String topicName) {
+        this.topicName = topicName;
+    }
+    public long getTotalRecords() {
+        return totalRecords.get();
+    }
+
+    public long getTotalBytes () {
+        return totalBytes.get();
+    }
+
+    public long getRecordsPerSecond() {
+        return recordsPerSecond.get();
+    }
+
+    public long getBytesPerSecond() {
+        return bytesPerSecond.get();
+    }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public void addToTotalRecords(long incrementBy) {
+        totalRecords.addAndGet(incrementBy);
+    }
+
+    public void addToTotalBytes(long incrementBy) {
+        totalBytes.addAndGet(incrementBy);
+    }
+
+    public void setRecordsPerSecond(long rps) {
+        recordsPerSecond.set(rps);
+    }
+
+    public void setBytesPerSecond(long bps) {
+        bytesPerSecond.set(bps);
+    }
+}
+----
+
+[source,java,title="TopicMetrics.java - demonstrates a list of metrics"]
+----
+package com.teragrep.example.metrics;
+
+import com.teragrep.mxj_01.CompositeDataWriter;
+import com.teragrep.mxj_01.DynamicBean;
+import com.teragrep.mxj_01.TabularDataWriter;
+
+import javax.management.*;
+import java.lang.management.ManagementFactory;
+import java.util.LinkedList;
+import java.util.List;
+
+public class TopicMetrics {
+
+    private static boolean initialized = false;
+
+    // use this as constructor argument
+    private final List<TopicCounter> topicList = new LinkedList<>();
+
+    public TopicMetrics() {
+        if (!initialized) {
+            try {
+                register();
+            } catch (MalformedObjectNameException
+                     | NotCompliantMBeanException
+                     | InstanceAlreadyExistsException
+                     | MBeanRegistrationException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+
+        // usage
+        TopicCounter topicCounter1 = new TopicCounter("testTopic1");
+        topicCounter1.setBytesPerSecond(100);
+        topicCounter1.setRecordsPerSecond(1);
+        topicCounter1.addToTotalBytes(100);
+        topicCounter1.addToTotalRecords(1);
+
+        TopicCounter topicCounter2 = new TopicCounter("testTopic2");
+        topicCounter2.setBytesPerSecond(200);
+        topicCounter2.setRecordsPerSecond(2);
+        topicCounter2.addToTotalBytes(200);
+        topicCounter2.addToTotalRecords(2);
+
+        topicList.add(topicCounter1);
+        topicList.add(topicCounter2);
+
+    }
+
+
+    public void register() throws
+            MalformedObjectNameException,
+            NotCompliantMBeanException,
+            InstanceAlreadyExistsException,
+            MBeanRegistrationException {
+
+        CompositeDataWriter<TopicCounter> userWriter = CompositeDataWriter.builder(TopicCounter.class)
+                .withTypeName("topic")
+                .withTypeDescription("Topic throughput")
+                .withSimpleAttribute("topicName", TopicCounter::getTopicName)
+                .withSimpleAttribute("totalRecords", TopicCounter::getTotalRecords)
+                .withSimpleAttribute("totalBytes", TopicCounter::getTotalBytes)
+                .withSimpleAttribute("recordsPerSecond", TopicCounter::getRecordsPerSecond)
+                .withSimpleAttribute("bytesPerSecond", TopicCounter::getBytesPerSecond)
+                .build();
+
+        TabularDataWriter<TopicCounter> usersWriter = TabularDataWriter.builder(TopicCounter.class)
+                .withTypeName("topics")
+                .withTypeDescription("Topics counted")
+                .withIndexName("topicName")
+                .withCompositeDataWriter(userWriter)
+                .build();
+
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+
+        DynamicMBean usersBean = DynamicBean.builder()
+                .withTabularAttribute(
+                        "TopicStatistics",
+                        () -> topicList,
+                        usersWriter
+                )
+                .build();
+
+        ObjectName objectName = new ObjectName(
+                "com.teragrep.example:type=Metrics,name=Topic"
+        );
+        mBeanServer.registerMBean(
+                usersBean,
+                objectName
+        );
+        initialized = true;
+    }
+}
+----
+
+[source,java,title="TotalsMetrics.java - demonstrates simple type usage"]
+----
+package com.teragrep.example.metrics;
+
+import com.teragrep.mxj_01.DynamicBean;
+
+import javax.management.*;
+import java.lang.management.ManagementFactory;
+import java.util.concurrent.atomic.AtomicLong;
+
+public class TotalsMetrics {
+    static final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+
+    // use these as constructor argument
+    private static final AtomicLong totalThreads = new AtomicLong();
+    private static final AtomicLong totalRPS = new AtomicLong();
+    private static final AtomicLong totalBPS = new AtomicLong();
+    private static final AtomicLong samplingInterval = new AtomicLong();
+
+    private static boolean initialized = false;
+
+    public TotalsMetrics() {
+        if (!initialized) {
+            try {
+                register();
+            } catch (MalformedObjectNameException
+                     | NotCompliantMBeanException
+                     | InstanceAlreadyExistsException
+                     | MBeanRegistrationException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+    }
+
+    private void register() throws
+            MalformedObjectNameException,
+            NotCompliantMBeanException,
+            InstanceAlreadyExistsException,
+            MBeanRegistrationException {
+
+        DynamicMBean totalsBean = DynamicBean.builder()
+                .withSimpleAttribute(
+                        Long.class,
+                        "threads",
+                        totalThreads::get,
+                        totalThreads::set
+                )
+                .withSimpleAttribute(
+                        Long.class,
+                        "bytesPerSecond",
+                        totalBPS::get,
+                        totalBPS::set
+                )
+                .withSimpleAttribute(
+                        Long.class,
+                        "RecordsPerSecond",
+                        totalRPS::get,
+                        totalRPS::set
+                )
+                .withSimpleAttribute(
+                        Long.class,
+                        "samplingInterval",
+                        samplingInterval::get,
+                        samplingInterval::set
+                )
+                .build();
+
+        ObjectName objectName = new ObjectName(
+                "com.teragrep.example:type=Metrics,name=Totals"
+        );
+
+        mBeanServer.registerMBean(
+                totalsBean,
+                objectName
+        );
+
+        initialized = true;
+    }
+
+    public void addThread() {
+        totalThreads.addAndGet(1);
+    }
+
+    public void subtractThread() {
+        totalThreads.addAndGet(-1);
+    }
+
+    public void setTotalRPS(long rps) {
+        totalRPS.set(rps);
+    }
+
+    public void setTotalBPS(long bps) {
+        totalBPS.set(bps);
+    }
+
+    public void setSamplingInterval(long interval) {
+        samplingInterval.set(interval);
+    }
+}
+----
