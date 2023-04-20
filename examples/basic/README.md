@@ -1,3 +1,7 @@
+# NOTICE
+
+This is outdated example that uses gradle and won't be functional as-is.
+
 # Basic Example
 
 This is a basic example of an application using jmxbuilder.
