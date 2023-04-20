@@ -2,6 +2,7 @@
   SPDX-License-Identifier: Apache-2.0
 
   Copyright 2019 Terse Systems <will@tersesystems.com>
+  Copyright 2023 Suomen Kanuuna Oy
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -15,13 +16,11 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
-package com.tersesystems.jmxbuilder;
+package com.teragrep.mxj_01;
 
 import net.jodah.typetools.TypeResolver;
 
 import javax.management.openmbean.*;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
