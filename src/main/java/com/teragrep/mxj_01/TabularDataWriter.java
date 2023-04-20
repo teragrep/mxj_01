@@ -2,6 +2,7 @@
   SPDX-License-Identifier: Apache-2.0
 
   Copyright 2019 Terse Systems <will@tersesystems.com>
+  Copyright 2023 Suomen Kanuuna Oy
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -15,7 +16,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
  */
-package com.tersesystems.jmxbuilder;
+package com.teragrep.mxj_01;
 
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.TabularData;

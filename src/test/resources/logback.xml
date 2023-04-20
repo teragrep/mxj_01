@@ -15,7 +15,7 @@
     <!-- FINEST -->
     <logger name="javax.management.modelmbean" level="TRACE"/>
     <logger name="com.sun.management" level="DEBUG"/>
-    <logger name="com.tersesystems.jmxbuilder" level="DEBUG"/>
+    <logger name="com.teragrep.mxj_01" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="ROOT_APPENDER" />
