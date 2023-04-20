@@ -67,7 +67,7 @@
       <artifactId>typetools</artifactId>
       <version>0.6.3</version>
     </dependency>
-    <!-- testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1' -->
+    <!-- testImplementation ("org.assertj:assertj-core:3.11.1") -->
     <!-- Different version as requested in issue #13 -->
     <dependency>
       <groupId>org.assertj</groupId>
