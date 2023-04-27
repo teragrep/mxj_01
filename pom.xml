@@ -24,6 +24,12 @@
     <developerConnection>scm:git:git@github.com:teragrep/mxj_01.git</developerConnection>
     <url>https://github.com/teragrep/mxj_01/tree/master</url>
   </scm>
+  <licenses>
+    <license>
+      <name>Apache License v2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
   <developers>
     <developer>
       <name>Mikko Kortelainen</name>
