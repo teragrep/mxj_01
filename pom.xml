@@ -24,6 +24,14 @@
     <developerConnection>scm:git:git@github.com:teragrep/mxj_01.git</developerConnection>
     <url>https://github.com/teragrep/mxj_01/tree/master</url>
   </scm>
+  <developers>
+    <developer>
+      <name>Mikko Kortelainen</name>
+      <email>1@teragrep.com</email>
+      <organization>Teragrep</organization>
+      <organizationUrl>https://teragrep.com</organizationUrl>
+    </developer>
+  </developers>
   <dependencies>
     <!-- testImplementation group: 'org.slf4j', name: 'jul-to-slf4j', version: '1.7.29' -->
     <dependency>
